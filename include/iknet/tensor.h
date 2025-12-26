@@ -29,14 +29,27 @@ public:
         return size;
     }
 
+    static std::vector<size_t> calculate_strides(const std::vector<size_t>& shape) {
+        std::vector<size_t> strides(shape.size());
+        size_t current_stride = 1;
+        for (long i = shape.size() - 1; i >= 0; --i) {
+            strides[i] = current_stride;
+            current_stride *= shape[i];
+        }
+        return strides;
+    }
+
     Tensor operator+(const Tensor& other) const { return elementwise_op(other, std::plus<T>()); }
     Tensor operator-(const Tensor& other) const { return elementwise_op(other, std::minus<T>()); }
     Tensor operator*(const Tensor& other) const { return elementwise_op(other, std::multiplies<T>()); }
     Tensor operator/(const Tensor& other) const { return elementwise_op(other, std::divides<T>()); }
 
 private:
-    std::vector<T> m_data;
+    // std::vector<T> m_data;
+    std::shared_ptr<std::vector<T>> m_data;
+    size_t m_offset = 0;
     std::vector<size_t> m_shape; 
+    std::vector<size_t> m_strides;
 
     template<typename Func>
     Tensor elementwise_op(const Tensor& other, Func func) const {
