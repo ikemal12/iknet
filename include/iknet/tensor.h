@@ -40,6 +40,42 @@ public:
         return Tensor(result_data, m_shape);
     }
 
+    Tensor operator-(const Tensor& other) const {
+        if (m_shape != other.m_shape) {
+            throw std::invalid_argument("Shapes must match for subtraction");
+        }
+        std::vector<T> result_data;
+        result_data.reserve(m_data.size());
+        for (size_t i = 0; i < m_data.size(); ++i) {
+            result_data.push_back(m_data[i] - other.m_data[i]);
+        }
+        return Tensor(result_data, m_shape);
+    }
+
+    Tensor operator*(const Tensor& other) const {
+        if (m_shape != other.m_shape) {
+            throw std::invalid_argument("Shapes must match for multiplication");
+        }
+        std::vector<T> result_data;
+        result_data.reserve(m_data.size());
+        for (size_t i = 0; i < m_data.size(); ++i) {
+            result_data.push_back(m_data[i] * other.m_data[i]);
+        }
+        return Tensor(result_data, m_shape);
+    }
+
+    Tensor operator/(const Tensor& other) const {
+        if (m_shape != other.m_shape) {
+            throw std::invalid_argument("Shapes must match for division");
+        }
+        std::vector<T> result_data;
+        result_data.reserve(m_data.size());
+        for (size_t i = 0; i < m_data.size(); ++i) {
+            result_data.push_back(m_data[i] / other.m_data[i]);
+        }
+        return Tensor(result_data, m_shape);
+    }
+
 private:
     std::vector<T> m_data;
     std::vector<size_t> m_shape; 
