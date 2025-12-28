@@ -6,7 +6,6 @@
 #include <stdexcept>
 #include <functional>
 #include <memory>
-#include <numeric>
 
 namespace iknet {
 
@@ -28,12 +27,15 @@ public:
     Tensor(std::shared_ptr<std::vector<T>> data, std::vector<size_t> shape, std::vector<size_t> strides, size_t offset)
     : m_data(data), m_shape(shape), m_strides(strides), m_offset(offset) {}
 
+    const std::vector<T>& data() const { return *m_data; }
     const std::vector<size_t>& shape() const { return m_shape; }
     const std::vector<size_t>& strides() const { return m_strides; }
 
     static size_t calculate_size(const std::vector<size_t>& shape) {
         if (shape.empty()) return 0;
-        return std::accumulate(shape.begin(), shape.end(), 1ULL, std::multiplies<size_t>());
+        size_t size = 1;
+        for (size_t dim : shape) size *= dim;
+        return size;
     }
 
     Tensor operator+(const Tensor& other) const { return elementwise_op(other, std::plus<T>()); }
