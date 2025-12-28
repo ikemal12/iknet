@@ -5,6 +5,7 @@
 #include <type_traits>
 #include <stdexcept>
 #include <functional>
+#include <memory>
 
 namespace iknet {
 
@@ -23,14 +24,11 @@ public:
         m_strides = calculate_strides(m_shape);
     }
 
-    Tensor(std::span<const T> data, std::vector<size_t> shape)
-    : m_data(data.begin(), data.end()), m_shape(std::move(shape)) {}
-
-    Tensor(const std::vector<T>& data, std::vector<size_t> shape)
-    : Tensor(std::span<const T>(data), std::move(shape)) {}
+    Tensor(std::shared_ptr<std::vector<T>> data, std::vector<size_t> shape, std::vector<size_t> strides, size_t offset)
+    : m_data(data), m_shape(shape), m_strides(strides), m_offset(offset) {}
 
     const std::vector<size_t>& shape() const { return m_shape; }
-    const std::vector<T>& data() const { return m_data; }
+    const std::vector<size_t>& strides() const { return m_strides; }
 
     static size_t calculate_size(const std::vector<size_t>& shape) {
         size_t size = 1;
