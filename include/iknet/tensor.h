@@ -15,6 +15,15 @@ template<Numeric T>
 class Tensor {
 public:
     Tensor(std::span<const T> data, std::vector<size_t> shape)
+    : m_shape(std::move(shape)) m_offset(0) {
+        size_t size = calculate_size(m_shape);
+        if (data.size() != size) throw std::invalid_argument("Data size mismatch");
+
+        m_data = std::make_shared<std::vector<T>>(data.begin(), data.end());
+        m_strides = calculate_strides(m_shape);
+    }
+
+    Tensor(std::span<const T> data, std::vector<size_t> shape)
     : m_data(data.begin(), data.end()), m_shape(std::move(shape)) {}
 
     Tensor(const std::vector<T>& data, std::vector<size_t> shape)
