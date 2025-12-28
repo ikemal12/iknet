@@ -6,6 +6,7 @@
 #include <stdexcept>
 #include <functional>
 #include <memory>
+#include <numeric>
 
 namespace iknet {
 
@@ -31,10 +32,20 @@ public:
     const std::vector<size_t>& strides() const { return m_strides; }
 
     static size_t calculate_size(const std::vector<size_t>& shape) {
-        size_t size = 1;
-        for (size_t dim : shape) size *= dim;
-        return size;
+        if (shape.empty()) return 0;
+        return std::accumulate(shape.begin(), shape.end(), 1ULL, std::multiplies<size_t>());
     }
+
+    Tensor operator+(const Tensor& other) const { return elementwise_op(other, std::plus<T>()); }
+    Tensor operator-(const Tensor& other) const { return elementwise_op(other, std::minus<T>()); }
+    Tensor operator*(const Tensor& other) const { return elementwise_op(other, std::multiplies<T>()); }
+    Tensor operator/(const Tensor& other) const { return elementwise_op(other, std::divides<T>()); }
+
+private:
+    std::shared_ptr<std::vector<T>> m_data;
+    std::vector<size_t> m_shape; 
+    std::vector<size_t> m_strides;
+    size_t m_offset = 0;
 
     static std::vector<size_t> calculate_strides(const std::vector<size_t>& shape) {
         std::vector<size_t> strides(shape.size());
@@ -45,18 +56,6 @@ public:
         }
         return strides;
     }
-
-    Tensor operator+(const Tensor& other) const { return elementwise_op(other, std::plus<T>()); }
-    Tensor operator-(const Tensor& other) const { return elementwise_op(other, std::minus<T>()); }
-    Tensor operator*(const Tensor& other) const { return elementwise_op(other, std::multiplies<T>()); }
-    Tensor operator/(const Tensor& other) const { return elementwise_op(other, std::divides<T>()); }
-
-private:
-    // std::vector<T> m_data;
-    std::shared_ptr<std::vector<T>> m_data;
-    size_t m_offset = 0;
-    std::vector<size_t> m_shape; 
-    std::vector<size_t> m_strides;
 
     template<typename Func>
     Tensor elementwise_op(const Tensor& other, Func func) const {
