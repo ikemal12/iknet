@@ -16,7 +16,7 @@ template<Numeric T>
 class Tensor {
 public:
     Tensor(std::span<const T> data, std::vector<size_t> shape)
-    : m_shape(std::move(shape)) m_offset(0) {
+    : m_shape(std::move(shape)), m_offset(0) {
         size_t size = calculate_size(m_shape);
         if (data.size() != size) throw std::invalid_argument("Data size mismatch");
 
@@ -36,6 +36,14 @@ public:
         size_t size = 1;
         for (size_t dim : shape) size *= dim;
         return size;
+    }
+
+    T& at(const std::vector<size_t>& indices) {
+        size_t flat_index = m_offset;
+        for (size_t i = 0; i < indices.size(); ++i) {
+            flat_index += indices[i] * m_strides[i];
+        }
+        return (*m_data)[flat_index];
     }
 
     Tensor operator+(const Tensor& other) const { return elementwise_op(other, std::plus<T>()); }
@@ -65,9 +73,9 @@ private:
                 throw std::invalid_argument("Shapes must match for element-wise operation");
             }
             std::vector<T> result_data;
-            result_data.reserve(m_data.size());
-            for (size_t i = 0; i < m_data.size(); ++i) {
-                result_data.push_back(func(m_data[i], other.m_data[i]));
+            result_data.reserve(m_data->size());
+            for (size_t i = 0; i < m_data->size(); ++i) {
+                result_data.push_back(func((*m_data)[i], (*other.m_data)[i]));
             }
             return Tensor(result_data, m_shape);
     }

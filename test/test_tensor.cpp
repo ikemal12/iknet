@@ -6,7 +6,6 @@
 namespace iknet {
 }
 
-
 int main() {
     std::vector<float> data = {1, 2, 3, 4, 5, 6};
     std::vector<size_t> shape = {2, 3};
@@ -14,6 +13,9 @@ int main() {
 
     for (auto dim : tensor.shape()) std::cout << dim << " ";
     for (auto val : tensor.data()) std::cout << val << " ";
+
+    float val = tensor.at({1, 0});
+    std::cout << "Value at (1, 0): " << val << std::endl;
 
     iknet::Tensor<float> a(std::span<const float>({1, 2, 3, 4, 5, 6}), {2, 3});
     iknet::Tensor<float> b(std::span<const float>({10, 20, 30, 40, 50, 60}), {2, 3});
