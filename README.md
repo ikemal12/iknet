@@ -1,7 +1,15 @@
-High-performance CUDA engine for extremely fast 2D convolutions with shared memory optimization.
+ # iknet
 
-Includes essential CNN layers: ReLU activation, MaxPooling, multi-channel support (RGB) and batched operations.
+ ## Plan
 
-Features comprehensive performance benchmarking and testing suite for large-scale CNN inference.
-
-Future features to add include memory pooling and bias support.
+ 1. Tensor object 
+    - Storage
+    - Operator overloading
+    - Broadcasting
+ 2. Autograd engine 
+    - Gradients
+    - Backprop
+    - Train simple model eg. linear regression
+3. Layers
+4. CNN
+5. RNN, Transformers etc. ...
