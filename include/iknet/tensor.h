@@ -51,6 +51,17 @@ public:
     Tensor operator*(const Tensor& other) const { return elementwise_op(other, std::multiplies<T>()); }
     Tensor operator/(const Tensor& other) const { return elementwise_op(other, std::divides<T>()); }
 
+    Tensor transpose(size_t dim0, size_t dim1) const {
+        if (dim0 >= m_shape.size() || dim1 >= m_shape.size()) {
+            throw std::out_of_range("Dimension index out of range");
+        }
+        std::vector<size_t> new_shape = m_shape;
+        std::vector<size_t> new_strides = m_strides;
+        std::swap(new_shape[dim0], new_shape[dim1]);
+        std::swap(new_strides[dim0], new_strides[dim1]);
+        return Tensor(m_data, new_shape, new_strides, m_offset);
+    }
+
 private:
     std::shared_ptr<std::vector<T>> m_data;
     std::vector<size_t> m_shape; 
