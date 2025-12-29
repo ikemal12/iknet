@@ -109,5 +109,29 @@ private:
         }
         return Tensor(result_data, m_shape);
     }
+
+    static std::vector<size_t> infer_broadcast_shape(const std::vector<size_t>& s1, const std::vector<size_t>& s2) {
+        size_t dims1 = s1.size();
+        size_t dims2 = s2.size();
+        size_t n = std::max(dims1, dims2);
+        std::vector<size_t> result(n);
+
+        for (size_t i = 0; i < n; ++i) {
+            size_t dim1 = (i < n - dims1) ? 1 : s1[i - (n - dims1)];
+            size_t dim2 = (i < n - dims2) ? 1 : s2[i - (n - dims2)];
+            
+            if (dim1 == dim2) {
+                result[i] = dim1;
+            } else if (dim1 == 1) {
+                result[i] = dim2;
+            } else if (dim2 == 1) {
+                result[i] = dim1;
+            } else {
+                throw std::invalid_argument("Shapes cannot be broadcast together");
+            }
+        }
+        return result;
+    }
+
 };
 } // namespace iknet
