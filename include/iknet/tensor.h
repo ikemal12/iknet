@@ -62,6 +62,28 @@ public:
         return Tensor(m_data, new_shape, new_strides, m_offset);
     }
 
+    Tensor broadcast_to(const std::vector<size_t>& target_shape) const {
+        if (target_shape.size() < m_shape.size()) {
+            throw std::invalid_argument("Cannot broadcast to fewer dimensions");
+        }
+
+        std::vector<size_t> new_strides(target_shape.size());
+        size_t offset_diff = target_shape.size() - m_shape.size();
+
+        for (size_t i = 0; i < target_shape.size(); ++i) {
+            size_t dim = (i < offset_diff) ? 1 : m_shape[i - offset_diff];
+
+            if (dim == target_shape[i]) {
+                new_strides[i] = (i < offset_diff) ? 0 : m_strides[i - offset_diff];
+            } else if (dim == 1) {
+                new_strides[i] = 0;
+            } else {
+                throw std::invalid_argument("Shapes cannot be broadcast together");
+            }
+        }
+        return Tensor(m_data, target_shape, new_strides, m_offset);
+    }
+
 private:
     std::shared_ptr<std::vector<T>> m_data;
     std::vector<size_t> m_shape; 
