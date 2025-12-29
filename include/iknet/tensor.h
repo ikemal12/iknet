@@ -102,34 +102,32 @@ private:
 
     template<typename Func>
     Tensor elementwise_op(const Tensor& other, Func func) const {
-        if (m_shape != other.m_shape) {
-                throw std::invalid_argument("Shapes must match for element-wise operation");
-        }
-        
-        size_t total_elements = calculate_size(m_shape);
+        std::vector<size_t> target_shape = infer_broadcast_shape(m_shape, other.m_shape);
+        Tensor lhs_broadcasted = this->broadcast_to(target_shape);
+        Tensor rhs_broadcasted = other.broadcast_to(target_shape);
+        size_t total_elements = calculate_size(target_shape);
         std::vector<T> result_data;
         result_data.reserve(total_elements);
-
-        std::vector<size_t> index(m_shape.size(), 0);
+        std::vector<size_t> index(target_shape.size(), 0);
 
         for (size_t i = 0; i < total_elements; ++i) {
-            size_t idx_self = m_offset;
-            size_t idx_other = other.m_offset;
+            size_t idx_lhs = lhs_broadcasted.m_offset;
+            size_t idx_rhs = rhs_broadcasted.m_offset;
 
-            for (size_t dim = 0; dim < m_shape.size(); ++dim) {
-                idx_self += index[dim] * m_strides[dim];
-                idx_other += index[dim] * other.m_strides[dim];
+            for (size_t dim = 0; dim < target_shape.size(); ++dim) {
+                idx_lhs += index[dim] * lhs_broadcasted.m_strides[dim];
+                idx_rhs += index[dim] * rhs_broadcasted.m_strides[dim];
             }
 
-            result_data.push_back(func((*m_data)[idx_self], (*other.m_data)[idx_other]));
+            result_data.push_back(func((*lhs_broadcasted.m_data)[idx_lhs], (*rhs_broadcasted.m_data)[idx_rhs]));
 
-            for (long dim = m_shape.size() - 1; dim >= 0; --dim) {
+            for (long dim = target_shape.size() - 1; dim >= 0; --dim) {
                 index[dim]++;
-                if (index[dim] < m_shape[dim]) break;
+                if (index[dim] < target_shape[dim]) break;
                 index[dim] = 0;
             }
         }
-        return Tensor(result_data, m_shape);
+        return Tensor(result_data, target_shape);
     }
 
     static std::vector<size_t> infer_broadcast_shape(const std::vector<size_t>& s1, const std::vector<size_t>& s2) {
