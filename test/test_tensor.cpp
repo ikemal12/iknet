@@ -2,6 +2,7 @@
 #include <vector>
 #include <iostream>
 #include <span>
+#include <cassert>
 
 namespace iknet {
 }
@@ -27,5 +28,30 @@ int main() {
     for (auto val : c_sub.data()) std::cout << val << " "; 
     for (auto val : c_mul.data()) std::cout << val << " "; 
     for (auto val : c_div.data()) std::cout << val << " "; 
+
+    // 1. SETUP: Create Matrix A (2x2)
+    // [ 1, 2 ]
+    // [ 3, 4 ]
+    std::vector<float> data2 = {1, 2, 3, 4};
+    iknet::Tensor<float> x(data2, {2, 2});
+
+    // 2. CREATE TRANSPOSE VIEW 'B' OF A
+    // [ 1, 3 ]
+    // [ 2, 4 ]
+    auto y = x.transpose(0, 1);
+
+    // 3. ADD THEM 
+    // We are adding a contiguous tensor (A) to a non-contiguous view (B).
+    // [ 1, 2 ]   [ 1, 3 ]   [ 2, 5 ]
+    // [ 3, 4 ] + [ 2, 4 ] = [ 5, 8 ]
+    auto c = x + y;
+    std::cout << "Result of A + A.T:\n";
+    std::cout << c.at({0, 0}) << " (Expected 2)" << std::endl;
+    assert(c.at({0, 0}) == 2.0f);
+    std::cout << c.at({0, 1}) << " (Expected 5)" << std::endl;
+    assert(c.at({0, 1}) == 5.0f);
+    std::cout << c.at({1, 1}) << " (Expected 8)" << std::endl;
+    assert(c.at({1, 1}) == 8.0f);
+
     return 0;
 }

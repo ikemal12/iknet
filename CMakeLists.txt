@@ -6,7 +6,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 add_library(iknet
     src/main.cpp
-    test/test_tensor.cpp
 )
 
 target_include_directories(iknet PUBLIC include)

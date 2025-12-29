@@ -10,7 +10,7 @@
 namespace iknet {
 
 template<typename T>
-concept Numeric = ::std::is_arithmetic_v<T>;
+concept Numeric = std::is_arithmetic_v<T>;
 
 template<Numeric T>
 class Tensor {
@@ -110,3 +110,4 @@ private:
         return Tensor(result_data, m_shape);
     }
 };
+} // namespace iknet
