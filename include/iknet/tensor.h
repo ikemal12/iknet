@@ -27,11 +27,11 @@ public:
     Tensor(std::shared_ptr<std::vector<T>> data, std::vector<size_t> shape, std::vector<size_t> strides, size_t offset)
     : m_data(data), m_shape(shape), m_strides(strides), m_offset(offset) {}
 
-    const std::vector<T>& data() const { return *m_data; }
-    const std::vector<size_t>& shape() const { return m_shape; }
-    const std::vector<size_t>& strides() const { return m_strides; }
+    [[nodiscard]] const std::vector<T>& data() const { return *m_data; }
+    [[nodiscard]] const std::vector<size_t>& shape() const { return m_shape; }
+    [[nodiscard]] const std::vector<size_t>& strides() const { return m_strides; }
 
-    static size_t calculate_size(const std::vector<size_t>& shape) {
+    [[nodiscard]] static size_t calculate_size(const std::vector<size_t>& shape) {
         if (shape.empty()) return 0;
         size_t size = 1;
         for (size_t dim : shape) size *= dim;
@@ -51,7 +51,7 @@ public:
     Tensor operator*(const Tensor& other) const { return elementwise_op(other, std::multiplies<T>()); }
     Tensor operator/(const Tensor& other) const { return elementwise_op(other, std::divides<T>()); }
 
-    Tensor transpose(size_t dim0, size_t dim1) const {
+    [[nodiscard]] Tensor transpose(size_t dim0, size_t dim1) const {
         if (dim0 >= m_shape.size() || dim1 >= m_shape.size()) {
             throw std::out_of_range("Dimension index out of range");
         }
@@ -62,7 +62,7 @@ public:
         return Tensor(m_data, new_shape, new_strides, m_offset);
     }
 
-    Tensor broadcast_to(const std::vector<size_t>& target_shape) const {
+    [[nodiscard]] Tensor broadcast_to(const std::vector<size_t>& target_shape) const {
         if (target_shape.size() < m_shape.size()) {
             throw std::invalid_argument("Cannot broadcast to fewer dimensions");
         }
@@ -84,6 +84,10 @@ public:
         return Tensor(m_data, target_shape, new_strides, m_offset);
     }
 
+    [[nodiscard]] bool is_contiguous() const {
+        return m_strides == calculate_strides(m_shape);
+    }
+
 private:
     std::shared_ptr<std::vector<T>> m_data;
     std::vector<size_t> m_shape; 
@@ -103,11 +107,21 @@ private:
     template<typename Func>
     Tensor elementwise_op(const Tensor& other, Func func) const {
         std::vector<size_t> target_shape = infer_broadcast_shape(m_shape, other.m_shape);
-        Tensor lhs_broadcasted = this->broadcast_to(target_shape);
-        Tensor rhs_broadcasted = other.broadcast_to(target_shape);
         size_t total_elements = calculate_size(target_shape);
         std::vector<T> result_data;
         result_data.reserve(total_elements);
+
+        if (m_shape == other.m_shape && this->is_contiguous() && other.is_contiguous()) {
+            for (size_t i = 0; i < total_elements; ++i) {
+                T val1 = (*m_data)[m_offset + i];
+                T val2 = (*other.m_data)[other.m_offset + i];
+                result_data.push_back(func(val1, val2));
+            }
+            return Tensor(result_data, target_shape);
+        }
+
+        Tensor lhs_broadcasted = this->broadcast_to(target_shape);
+        Tensor rhs_broadcasted = other.broadcast_to(target_shape);
         std::vector<size_t> index(target_shape.size(), 0);
 
         for (size_t i = 0; i < total_elements; ++i) {
