@@ -10,7 +10,7 @@
 namespace iknet {
 
 template<typename T>
-concept Numeric = std::is_arithmetic_v<T>;
+concept Numeric = ::std::is_arithmetic_v<T>;
 
 template<Numeric T>
 class Tensor {
@@ -82,14 +82,31 @@ private:
     Tensor elementwise_op(const Tensor& other, Func func) const {
         if (m_shape != other.m_shape) {
                 throw std::invalid_argument("Shapes must match for element-wise operation");
+        }
+        
+        size_t total_elements = calculate_size(m_shape);
+        std::vector<T> result_data;
+        result_data.reserve(total_elements);
+
+        std::vector<size_t> index(m_shape.size(), 0);
+
+        for (size_t i = 0; i < total_elements; ++i) {
+            size_t idx_self = m_offset;
+            size_t idx_other = other.m_offset;
+
+            for (size_t dim = 0; dim < m_shape.size(); ++dim) {
+                idx_self += index[dim] * m_strides[dim];
+                idx_other += index[dim] * other.m_strides[dim];
             }
-            std::vector<T> result_data;
-            result_data.reserve(m_data->size());
-            for (size_t i = 0; i < m_data->size(); ++i) {
-                result_data.push_back(func((*m_data)[i], (*other.m_data)[i]));
+
+            result_data.push_back(func((*m_data)[idx_self], (*other.m_data)[idx_other]));
+
+            for (long dim = m_shape.size() - 1; dim >= 0; --dim) {
+                index[dim]++;
+                if (index[dim] < m_shape[dim]) break;
+                index[dim] = 0;
             }
-            return Tensor(result_data, m_shape);
+        }
+        return Tensor(result_data, m_shape);
     }
 };
-
-}
