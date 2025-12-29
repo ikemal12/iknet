@@ -53,5 +53,12 @@ int main() {
     std::cout << c.at({1, 1}) << " (Expected 8)" << std::endl;
     assert(c.at({1, 1}) == 8.0f);
 
+    iknet::Tensor<float> d(std::vector<float>{10, 20, 30}, {1, 3});
+    auto e = tensor + d;
+    std::cout << "Broadcast Result (0,0): " << e.at({0, 0}) << " (Expected 11)" << std::endl;
+    std::cout << "Broadcast Result (1,0): " << e.at({1, 0}) << " (Expected 14)" << std::endl;
+    assert(e.at({0, 0}) == 11);
+    assert(e.at({1, 0}) == 14);
+
     return 0;
 }
