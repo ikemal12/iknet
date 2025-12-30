@@ -88,6 +88,37 @@ public:
         return m_strides == calculate_strides(m_shape);
     }
 
+    [[nodiscard]] Tensor matmul(const Tensor& other) const {
+        if (m_shape.size != 2 || other.m_shape.size() != 2) {
+            throw std::invalid_argument("Matmul currently only supports 2D matrices");
+        }
+
+        size_t M = m_shape[0];
+        size_t K = m_shape[1];
+        size_t K2 = other.m_shape[0];
+        size_t N = other.m_shape[1];
+
+        if (K != K2) {
+            throw std::invalid_argument("Inner dimensions must match for matmul");
+        }
+
+        std::vector<size_t> result_shape = {M, N};
+        std::vector<T> result_data(M * N, 0);
+
+        for (size_t i = 0; i < M; ++i) {
+            for (size_t j = 0; j < N; ++j) {
+                T sum = 0;
+                for(size_t k = 0; k < K; ++k) {
+                    T val_a = this->at({i, k});
+                    T val_b = other.at({k, j});
+                    sum += val_a * val_b;
+                }
+                result_data[i * N + j] = sum;
+            }
+        }
+        return Tensor(result_data, result_shape);
+    }
+
 private:
     std::shared_ptr<std::vector<T>> m_data;
     std::vector<size_t> m_shape; 
