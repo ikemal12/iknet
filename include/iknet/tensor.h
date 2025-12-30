@@ -38,7 +38,7 @@ public:
         return size;
     }
 
-    T& at(const std::vector<size_t>& indices) {
+    const T& at(const std::vector<size_t>& indices) const {
         size_t flat_index = m_offset;
         for (size_t i = 0; i < indices.size(); ++i) {
             flat_index += indices[i] * m_strides[i];
@@ -89,7 +89,7 @@ public:
     }
 
     [[nodiscard]] Tensor matmul(const Tensor& other) const {
-        if (m_shape.size != 2 || other.m_shape.size() != 2) {
+        if (m_shape.size() != 2 || other.m_shape.size() != 2) {
             throw std::invalid_argument("Matmul currently only supports 2D matrices");
         }
 

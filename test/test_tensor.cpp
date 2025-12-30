@@ -60,5 +60,24 @@ int main() {
     assert(e.at({0, 0}) == 11);
     assert(e.at({1, 0}) == 14);
 
+    iknet::Tensor<float> f(std::vector<float>{7, 8, 9, 1, 2, 3}, {3, 2});
+    auto g = tensor.matmul(f);
+    // VERIFY:
+    // Calculation for C[0,0]:
+    // Row 0 of A: [1, 2, 3]
+    // Col 0 of B: [7, 9, 2]
+    // Dot Prod: (1*7) + (2*9) + (3*2) = 7 + 18 + 6 = 31
+    std::cout << "MatMul [0,0]: " << g.at({0, 0}) << " (Expected 31)" << std::endl;
+    assert(g.at({0, 0}) == 31);
+
+    // Calculation for C[1,1]:
+    // Row 1 of A: [4, 5, 6]
+    // Col 1 of B: [8, 1, 3]
+    // Dot Prod: (4*8) + (5*1) + (6*3) = 32 + 5 + 18 = 55
+    std::cout << "MatMul [1,1]: " << g.at({1, 1}) << " (Expected 55)" << std::endl;
+    assert(g.at({1, 1}) == 55);
+
+    std::cout << "SUCCESS: Matrix Multiplication Verified." << std::endl;
+
     return 0;
 }
