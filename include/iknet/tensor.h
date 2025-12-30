@@ -92,7 +92,6 @@ public:
         if (m_shape.size() != 2 || other.m_shape.size() != 2) {
             throw std::invalid_argument("Matmul currently only supports 2D matrices");
         }
-
         size_t M = m_shape[0];
         size_t K = m_shape[1];
         size_t K2 = other.m_shape[0];
@@ -101,22 +100,24 @@ public:
         if (K != K2) {
             throw std::invalid_argument("Inner dimensions must match for matmul");
         }
-
-        std::vector<size_t> result_shape = {M, N};
-        std::vector<T> result_data(M * N, 0);
+        Tensor A = this->contiguous() ? *this: this->contiguous();
+        Tensor B_T = other.transpose(0, 1).contiguous();
+        const T* a_ptr = A.data().data();
+        const T* b_ptr = B_T.data().data();
+        std::vector<T> result_data(M*N);
 
         for (size_t i = 0; i < M; ++i) {
             for (size_t j = 0; j < N; ++j) {
                 T sum = 0;
+                const T* row_a = a_ptr + (i * K);
+                const T* row_b = b_ptr + (j * K);
                 for(size_t k = 0; k < K; ++k) {
-                    T val_a = this->at({i, k});
-                    T val_b = other.at({k, j});
-                    sum += val_a * val_b;
+                    sum += row_a[k] * row_b[k];
                 }
                 result_data[i * N + j] = sum;
             }
         }
-        return Tensor(result_data, result_shape);
+        return Tensor(result_data, {M, N});
     }
 
     [[nodiscard]] Tensor contiguous() const {
