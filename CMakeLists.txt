@@ -1,15 +1,19 @@
 cmake_minimum_required(VERSION 3.18)
-project(iknet LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 23)
-set(CMAKE_CXX_STANDARD_REQUIRED True)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-add_library(iknet
-    src/main.cpp
+project(iknet LANGUAGES CXX)
+add_library(iknet INTERFACE)
+
+target_include_directories(iknet INTERFACE 
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:include>
 )
 
-target_include_directories(iknet PUBLIC include)
-
-add_executable(test_tensor test/test_tensor.cpp)
+add_executable(test_tensor test/core/test_tensor.cpp)
 target_include_directories(test_tensor PUBLIC include)
-target_link_libraries(test_tensor iknet)
+target_link_libraries(test_tensor iknet GTest::gtest GTest::gtest_main)
+
+enable_testing()
+add_subdirectory(test)
