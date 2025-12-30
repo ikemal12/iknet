@@ -100,7 +100,7 @@ public:
         if (K != K2) {
             throw std::invalid_argument("Inner dimensions must match for matmul");
         }
-        Tensor A = this->contiguous() ? *this: this->contiguous();
+        Tensor A = this->is_contiguous() ? *this: this->contiguous();
         Tensor B_T = other.transpose(0, 1).contiguous();
         const T* a_ptr = A.data().data();
         const T* b_ptr = B_T.data().data();
