@@ -119,6 +119,31 @@ public:
         return Tensor(result_data, result_shape);
     }
 
+    [[nodiscard]] Tensor contiguous() const {
+        if (is_contiguous()) {
+            return Tensor(std::make_shared<std::vector<T>>(*m_data), m_shape, m_strides, m_offset);
+        }
+
+        size_t total = calculate_size(m_shape);
+        std::vector<T> new_data;
+        new_data.reserve(total);
+        std::vector<size_t> index(m_shape.size(), 0);
+        for (size_t i = 0; i < total; ++i) {
+            size_t idx = m_offset;
+            for(size_t dim = 0; dim < m_shape.size(); ++dim) {
+                idx += index[dim] * m_strides[dim];
+            }
+            new_data.push_back((*m_data)[idx]);
+
+            for (long dim = m_shape.size() - 1; dim >= 0; --dim) {
+                index[dim]++;
+                if (index[dim] < m_shape[dim]) break;
+                index[dim] = 0;
+            }
+        }
+        return Tensor(new_data, m_shape);
+    }
+
 private:
     std::shared_ptr<std::vector<T>> m_data;
     std::vector<size_t> m_shape; 
